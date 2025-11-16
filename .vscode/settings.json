@@ -2,6 +2,16 @@
     "files.associations": {
         "cstdlib": "c",
         "type_traits": "cpp",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "optional": "c",
+        "system_error": "c",
+        "array": "c",
+        "functional": "c",
+        "tuple": "c",
+        "utility": "c",
+        "string.h": "c",
+        "linked_list.h": "c",
+        "stdio.h": "c",
+        "numbers": "c"
     }
 }
