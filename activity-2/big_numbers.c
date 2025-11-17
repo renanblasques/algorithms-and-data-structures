@@ -1,6 +1,18 @@
+/*  ===========================================================================
+    |    TRABALHO 2 -ALGORTIMOS E ESTRUTURAS DE DADOS - NÚMEROS ASTRONÔMICOS  |
+    |       Renan Silva Blasques                - NUSP:  9784057              |
+    |       Rodrigo De Jesus Ferreira Gonçalves - NUSP: 16899823              |
+    ===========================================================================   */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "big_numbers.h"
+
+// Define o tipo BigNum
+typedef struct BigNum {
+    LinkedList *digits; // Lista encadeada para os dígitos
+    int sign;           // Sinal para o grande número
+} BigNum;
 
 BigNum* bignum_create(const char number[], int size) {
     // Verifica se o número recebido existe
@@ -13,13 +25,44 @@ BigNum* bignum_create(const char number[], int size) {
     if (size <= 0)
         return NULL;
 
-    // Cria a lista encadeada (número astronômico)
-    BigNum *n = linked_list_create();
+    // Define o sinal do número inicialmente como positivo e
+    // e o "começo" da string como o primeiro char
+    // Obs: sign = 1 para positivo, sign = -1 para negativo
+    int sign = 1, start = 0;
 
-    // Verifica se a função alocou memória para a lista
+    // Verifica o sinal do número recebido
+    if (number[0] == '-') {
+
+        // Defino o sinal como negativo e o "começo" da string
+        // é no segundo char da string
+        sign = -1;
+        start = 1;
+
+        // Verifica se veio só um '-'
+        if (size == 1)
+            return NULL;
+    }
+
+    // Cria o número astronômico
+    // Verifica se a função alocou memória para o número
     // Em caso de falha, já retorna nulo
+    BigNum *n = malloc(sizeof(BigNum));
     if (n == NULL)
         return NULL;
+
+    // Mesma coisa para a lista encadeada
+    // Se houver erro desaloca o número alocado anteriormente
+    n->digits = linked_list_create();
+    if (n->digits == NULL) {
+        free(n);
+        return NULL;
+    }
+
+    // Atribui o sinal para o grande número
+    n->sign = sign;
+
+    // Define o número real de dígitos (funciona para + ou -)
+    int num_digits = size - start;
 
     // i: "Ponteiro" para criar os nós da lista n (incrementa)
     // j: "Ponteiro" para pegar os dígitos do número (number) recebido (decrementa)
@@ -27,12 +70,13 @@ BigNum* bignum_create(const char number[], int size) {
     int j = size - 1;
 
     // Loop para inserir os dígitos na lista encadeada
-    for (i = 0; i < size; i++) {
+    for (i = 0; i < num_digits; i++) {
 
         // Verifica se é digito
-        // Caso não seja, desaloca n e retorna nulo
+        // Caso não seja, desaloca n->digits, n e retorna nulo
         if ((number[j] < '0') || (number[j] > '9')) {
-            linked_list_free(&n);
+            linked_list_free(&(n->digits));
+            free(n);
             return NULL;
         }
 
@@ -40,25 +84,35 @@ BigNum* bignum_create(const char number[], int size) {
         int digit = number[j] - '0';
 
         // Insere o dígito convertido de number na i-ésima posição da lista n (número astronômico)
-        linked_list_insert_node(n, i, digit);
+        linked_list_insert_node(n->digits, i, digit);
         j--;
     }
 
     // Loop para remover os zeros à esquerda
     // Note que k vai até 1, pois o número pode ser 0
-    for (int k = size - 1; k >= 1; k--) {
+    for (int k = num_digits - 1; k >= 1; k--) {
         // Cria o dígito para verificação
         int digit;
 
         // Busca o dígito no k-ésimo nó
-        linked_list_get_node(n, k, &digit);
+        linked_list_get_node(n->digits, k, &digit);
 
         // Caso o dígito seja um zero (à esquerda), remove da lista
         // Caso contrário, encerra o loop para não remover zeros do meio
         if (digit == 0)
-            linked_list_remove_node(n, k, NULL);
+            linked_list_remove_node(n->digits, k, NULL);
         else
             break;
+    }
+
+    // Por último, se o número for -0, remove o sinal
+    if (linked_list_size(n->digits) == 1) {
+
+        int unique_digit;
+        linked_list_get_node(n->digits, 0, &unique_digit);
+
+        if (unique_digit == 0)
+            n->sign = 1;
     }
 
     // Se chegou até aqui, a lista foi preenchida com os dígitos corretamente
@@ -71,9 +125,13 @@ BigNum* bignum_sum(const BigNum *n1, const BigNum *n2) {
     if (n1 == NULL || n2 == NULL)
         return NULL;
 
+    // Verifica se os dois números para a soma são positivos
+    if (n1->sign != 1 || n2->sign != 1)
+        return NULL;
+
     // Armazena a quantidade de dígitos de n1 e n2
-    int size_n1 = linked_list_size(n1);
-    int size_n2 = linked_list_size(n2);
+    int size_n1 = linked_list_size(n1->digits);
+    int size_n2 = linked_list_size(n2->digits);
 
     // Armazena a maior quantidade de dígitos em max_size
     int max_size;
@@ -84,9 +142,21 @@ BigNum* bignum_sum(const BigNum *n1, const BigNum *n2) {
         max_size = size_n2;
 
     // Cria o número sum que guardará a soma de n1 e n2
-    BigNum *sum = linked_list_create();
+    // Se a memória não foi alocada, retorna nulo
+    BigNum *sum = malloc(sizeof(BigNum));
     if (sum == NULL)
         return NULL;
+
+    // Cria a lista encadeada do número sum (sum->digits)
+    // Se a memória não foi alocada, desaloca sum e retorna nulo
+    sum->digits = linked_list_create();
+    if (sum->digits == NULL) {
+        free(sum);
+        return NULL;
+    }
+
+    // Define o sinal sempre positivo (para evitar lixo na memória)
+    sum->sign = 1;
 
     // Cria o carry inicial valendo 0 (para a primeira soma)
     int carry = 0;
@@ -98,7 +168,7 @@ BigNum* bignum_sum(const BigNum *n1, const BigNum *n2) {
 
         // Pega dígito de n1 se o i-ésimo dígito de n1 existir
         if (i < size_n1)
-            linked_list_get_node(n1, i, &n1_digit);
+            linked_list_get_node(n1->digits, i, &n1_digit);
 
         // Caso contrário, se o dígito não existir, assume 0 para a soma
         else
@@ -106,7 +176,7 @@ BigNum* bignum_sum(const BigNum *n1, const BigNum *n2) {
 
         // Pega dígito de n2 se o i-ésimo dígito de n2 existir
         if (i < size_n2)
-            linked_list_get_node(n2, i, &n2_digit);
+            linked_list_get_node(n2->digits, i, &n2_digit);
 
         // Caso contrário, se o dígito não existir, assume 0 para a soma
         else
@@ -127,7 +197,7 @@ BigNum* bignum_sum(const BigNum *n1, const BigNum *n2) {
         }
 
         // Insere resultado da soma dos dígitos em sum
-        linked_list_insert_node(sum, i, sum_digit);
+        linked_list_insert_node(sum->digits, i, sum_digit);
 
         // Processo repete para o próximo dígito
         // ou apenas termina se for o último
@@ -135,7 +205,7 @@ BigNum* bignum_sum(const BigNum *n1, const BigNum *n2) {
 
     // Se terminou o loop com carry = 1, adiciona um dígito extra em sum
     if (carry == 1)
-        linked_list_insert_node(sum, max_size, carry);
+        linked_list_insert_node(sum->digits, max_size, carry);
     
     // Se chegou até aqui, o número sum foi somado e já pode retornar
     return sum;
@@ -147,22 +217,44 @@ int bignum_compare(const BigNum *n1, const BigNum *n2) {
     if ((n1 == NULL) || (n2 == NULL))
         return -1;
 
-    // Obtém a quantidade de dígitos de cada número
-    int n1_size = linked_list_size(n1);
-    int n2_size = linked_list_size(n2);
-
-    /*
-        Faz uma verificação inicial:
-        - Se algum dos dois números possuir mais dígitos, é o maior
-        - Se possuirem dígitos iguais, analisar cada dígito
-    */
-    if (n1_size > n2_size)
+    // Inicialmente, compara pelo sinal
+    if (n1->sign > n2->sign)
         // n1 é maior que n2
         return 1;
 
-    if (n1_size < n2_size)
+    if (n1->sign < n2->sign)
         // n1 é menor que n2
         return 2;
+
+    // Se chegou até aqui, ambos possuem o mesmo sinal
+    int both_sign = n1->sign;
+
+    // Obtém a quantidade de dígitos de cada número
+    int n1_size = linked_list_size(n1->digits);
+    int n2_size = linked_list_size(n2->digits);
+
+    // Verifica agora o tamanho dos dígitos baseado no sinal
+    // Se ambos são positivos (mais dígitos -> maior)
+    if (both_sign == 1) {
+        if (n1_size > n2_size)
+            // n1 é maior que n2
+            return 1;
+    
+        if (n1_size < n2_size)
+            // n1 é menor que n2
+            return 2;
+    }
+
+    // Se ambos são negativos, a lógica se inverte (mais dígitos -> menor)
+    if (both_sign == -1) {
+        if (n1_size < n2_size)
+            // n1 é maior que n2
+            return 1;
+    
+        if (n1_size > n2_size)
+            // n1 é menor que n2
+            return 2;
+    }
 
     // Se chegou aqui, possuem número de dígitos iguais
     // Verificar dígito a dígito
@@ -172,29 +264,62 @@ int bignum_compare(const BigNum *n1, const BigNum *n2) {
 
     // Percorre as listas paralelamente, dígito a dígito,
     // do mais significativo para o menos significativo
-    for (int i = n1_size - 1; i >= 0; i--) {
 
-        // Obtém os i-ésimos dígitos de n1 e n2 e armazena
-        // em n1_digit e n2_digit, respectivamente
-        linked_list_get_node(n1, i, &n1_digit);
-        linked_list_get_node(n2, i, &n2_digit);
+    // Se ambos forem positivos:
+    if (both_sign == 1) {
 
-        // Se os dígitos forem iguais, recomeça o loop para o dígito
-        // menos significativo que o atual
-        if (n1_digit == n2_digit)
-            continue;
+        for (int i = n1_size - 1; i >= 0; i--) {
 
-        // Se o dígito de n1 for maior, ele é maior
-        else if (n1_digit > n2_digit)
-            greater = 1;
+            // Obtém os i-ésimos dígitos de n1 e n2 e armazena
+            // em n1_digit e n2_digit, respectivamente
+            linked_list_get_node(n1->digits, i, &n1_digit);
+            linked_list_get_node(n2->digits, i, &n2_digit);
 
-        // Se o dígito de n1 for menor, ele é menor
-        else
-            greater = 2;
+            // Se os dígitos forem iguais, recomeça o loop para o dígito
+            // menos significativo que o atual
+            if (n1_digit == n2_digit)
+                continue;
 
-        // Se chegou aqui, os dígitos são diferentes, logo já se
-        // sabe qual é o maior e pode encerrar o loop.
-        break;
+            // Se o dígito de n1 for maior, ele é maior
+            else if (n1_digit > n2_digit)
+                greater = 1;
+
+            // Se o dígito de n1 for menor, ele é menor
+            else
+                greater = 2;
+
+            // Se chegou aqui, os dígitos são diferentes, logo já se
+            // sabe qual é o maior e pode encerrar o loop.
+            break;
+        }
+
+    // Se ambos forem negativos:
+    } else if (both_sign == -1) {
+
+        for (int i = n1_size - 1; i >= 0; i--) {
+
+            // Obtém os i-ésimos dígitos de n1 e n2 e armazena
+            // em n1_digit e n2_digit, respectivamente
+            linked_list_get_node(n1->digits, i, &n1_digit);
+            linked_list_get_node(n2->digits, i, &n2_digit);
+
+            // Se os dígitos forem iguais, recomeça o loop para o dígito
+            // menos significativo que o atual
+            if (n1_digit == n2_digit)
+                continue;
+
+            // Se o dígito de n1 for menor, ele é maior (inverte)
+            else if (n1_digit < n2_digit)
+                greater = 1;
+
+            // Se o dígito de n1 for maior, ele é menor (inverte)
+            else
+                greater = 2;
+
+            // Se chegou aqui, os dígitos são diferentes, logo já se
+            // sabe qual é o maior e pode encerrar o loop.
+            break;
+        }
     }
     
     // Retorna a variável que indica qual caso chegou.
@@ -207,16 +332,16 @@ int bignum_print(const BigNum *n) {
         return -1;
 
     // Se a lista existe, verifica também se está vazia
-    if (linked_list_is_empty(n))
+    if (linked_list_is_empty(n->digits))
         return 0;
 
     // Obtém o número de dígitos do número
-    int n_size = linked_list_size(n);
+    int n_size = linked_list_size(n->digits);
     int digit;
     
     // Percorre a lista do final para o começo e imprime cada dígito
     for (int i = n_size - 1; i >= 0; i--) {
-        linked_list_get_node(n, i, &digit);
+        linked_list_get_node(n->digits, i, &digit);
         printf("%d", digit);
     }
 
@@ -228,7 +353,18 @@ int bignum_print(const BigNum *n) {
 }
 
 void bignum_destroy(BigNum **n) {
-    // Apenas chama a função para liberar a lista da memória
-    // A função já trata todos os casos
-    linked_list_free(n);
+    // Verifica se n é nulo
+    if (n == NULL)
+        return;
+
+    // Verifica se existe um grande número
+    if (*n == NULL)
+        return;
+
+    // Desaloca a lista encadeada dos dígitos
+    linked_list_free(&((*n)->digits));
+
+    // Desaloca todo o grande número e atribui nulo ao ponteiro
+    free(*n);
+    *n = NULL;
 }

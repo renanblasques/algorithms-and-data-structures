@@ -1,11 +1,16 @@
+/*  ===========================================================================
+    |    TRABALHO 2 -ALGORTIMOS E ESTRUTURAS DE DADOS - NÚMEROS ASTRONÔMICOS  |
+    |       Renan Silva Blasques                - NUSP:  9784057              |
+    |       Rodrigo De Jesus Ferreira Gonçalves - NUSP: 16899823              |
+    ===========================================================================   */
+
 #ifndef BIG_NUMBERS_H
 #define BIG_NUMBERS_H
 
 #include "linked_list.h"
 
-// Apenas troca o nome da lista encadeada para BigSum
-// para melhorar legibilidade do código
-typedef LinkedList BigNum;
+// Define o tipo opaco BigSum
+typedef struct BigNum BigNum;
 
 /* 
     Função para criar o grande número

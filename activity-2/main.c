@@ -1,3 +1,9 @@
+/*  ===========================================================================
+    |    TRABALHO 2 -ALGORTIMOS E ESTRUTURAS DE DADOS - NÚMEROS ASTRONÔMICOS  |
+    |       Renan Silva Blasques                - NUSP:  9784057              |
+    |       Rodrigo De Jesus Ferreira Gonçalves - NUSP: 16899823              |
+    ===========================================================================   */
+
 #include <stdio.h>        // Biblioteca para entrada e saída de dados
 #include <stdlib.h>       // Biblioteca para alocação de memória
 #include <string.h>       // Biblioteca para manipulação de strings
@@ -9,6 +15,7 @@ int main() {
     // Lê do usuário número de operações e armazena em num_operations
     int num_operations;
     scanf("%d", &num_operations);
+    getchar();
 
     // Aloca memória para armazenar o conteúdo das linha digitada (operação + n1 + n2)
     char *line_content = malloc(LINE_MAX * sizeof(char));
@@ -34,6 +41,7 @@ int main() {
         }
 
         // Cria os grandes números
+        // Passa a string cortada e o tamanho dela
         BigNum *n1 = bignum_create(first_num, strlen(first_num));
         BigNum *n2 = bignum_create(second_num, strlen(second_num));
 
@@ -58,13 +66,13 @@ int main() {
             bignum_destroy(&sum);
 
         } else if (strcmp(operation, "maior") == 0) {
-            printf(bignum_compare(n1, n2) == 1 ? "True" : "False");
+            printf(bignum_compare(n1, n2) == 1 ? "True\n" : "False\n");
 
         } else if (strcmp(operation, "menor") == 0) {
-            printf(bignum_compare(n1, n2) == 2 ? "True" : "False");
+            printf(bignum_compare(n1, n2) == 2 ? "True\n" : "False\n");
 
         } else if (strcmp(operation, "igual") == 0) {
-            printf(bignum_compare(n1, n2) == 0 ? "True" : "False");
+            printf(bignum_compare(n1, n2) == 0 ? "True\n" : "False\n");
 
         } else {
             printf("Operação inválida!\n");

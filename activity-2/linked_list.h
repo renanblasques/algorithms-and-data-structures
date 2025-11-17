@@ -1,3 +1,9 @@
+/*  ===========================================================================
+    |    TRABALHO 2 -ALGORTIMOS E ESTRUTURAS DE DADOS - NÚMEROS ASTRONÔMICOS  |
+    |       Renan Silva Blasques                - NUSP:  9784057              |
+    |       Rodrigo De Jesus Ferreira Gonçalves - NUSP: 16899823              |
+    ===========================================================================   */
+
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
