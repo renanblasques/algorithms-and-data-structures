@@ -53,7 +53,7 @@ int main() {
             return 1;
         }
 
-        printf("Resultado:: ");
+        printf("Resultado :: ");
 
         // Verifica a operação e chama função para realizá-la
         if (strcmp(operation, "soma") == 0) {
