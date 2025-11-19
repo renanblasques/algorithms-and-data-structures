@@ -391,34 +391,32 @@ void free_node(node *n) {
     free(n);
 }
 
-int find_atom_level(node *n, int target, int level) {
-    // Caso base 1 -> nó é nulo
-    if (n == NULL)
-        return -1;
+int count_levels(node *n) {
+    // Caso base
+    if (n == NULL) {
+        return 0;
+    }
 
-    // Caso base 2 -> nó é um átomo
+    // Caso base
     if (n->type == ATOM) {
-
-        if (n->head.atom == target)
-            return level;
-        
-        return -1;
+        return 0;
     }
 
-    // Caso recursivo -> nó é uma lista
-    if (n->type == LIST) {
+    // Caso recursivo
+    int max_sub = 0;
+
+    node *cur = n->head.list;
+    while (cur != NULL) {
+
+        int sub = count_levels(cur);
+
+        if (sub > max_sub)
+            max_sub = sub;
         
-        if (n->head.list != NULL) {
-            int found = find_atom_level(n->head.list, target, level + 1);
-
-            if (found != -1)
-                return found;
-        }
-
-        return find_atom_level(n->tail, target, level);
+        cur = cur->tail;
     }
 
-    return -1;
+    return 1 + max_sub;
 }
 
 /*
@@ -438,19 +436,22 @@ int find_atom_level(node *n, int target, int level) {
    Por exemplo "(42)" e não "42" direto.
 */
 int main() {
-    int target;
-    char buffer[1024];
+    char buffer[1024]; // guarda a linha digitada
 
-    scanf("%d\n", &target);
+    if (!fgets(buffer, sizeof(buffer), stdin)) {
+        // se fgets falhar (EOF etc.), só termina
+        return 1;
+    }
 
-    fgets(buffer, sizeof(buffer), stdin);
-
+    // ptr vai andar pela string durante o parsing
     char *ptr = buffer;
+
+    // raiz SEMPRE é uma lista entre parênteses
     node *root = parse_list(&ptr);
 
-    int level = find_atom_level(root->head.list, target, 0);
-    printf("%d\n", level);
+    printf("%d\n", count_levels(root) - 1);
 
+    // libera toda a memória alocada
     free_node(root);
     return 0;
 }
