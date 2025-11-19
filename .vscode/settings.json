@@ -13,6 +13,9 @@
         "linked_list.h": "c",
         "stdio.h": "c",
         "numbers": "c",
-        "big_numbers.h": "c"
+        "big_numbers.h": "c",
+        "sstream": "c",
+        "string": "c",
+        "limits": "c"
     }
 }

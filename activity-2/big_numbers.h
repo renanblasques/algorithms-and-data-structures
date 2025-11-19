@@ -21,8 +21,8 @@ BigNum* bignum_create(const char *number, int size);
 
 /* 
     Função para somar dois grandes números
-    Recebe os dois números que serão somados
-    Retorna a soma dos números ou nulo em caso de falha
+    Recebe os dois números que serão somados (n1 >= n2)
+    Retorna a subtração dos números ou nulo em caso de falha
 */
 BigNum* bignum_sum(const BigNum *n1, const BigNum *n2);
 
@@ -47,5 +47,21 @@ int bignum_print(const BigNum *n);
     Mesma função que linked_list_free
 */
 void bignum_destroy(BigNum **n);
+
+// ======================= Funções Auxiliares =======================
+
+/* 
+    Função auxiliar de subtração dos módulos
+    Recebe os dois números 
+    Retorna o número criado ou nulo em caso de falha
+*/
+BigNum* bignum_sub_abs(const BigNum *n1, const BigNum *n2);
+
+/* 
+    Função auxiliar de comparar valores absolutos dos números
+    Recebe os dois números e compara o tamanho dos dois (sem sinal)
+    Retorna 0 se |n1| = |n2|, 1 se |n1| > |n2| ou 2 se |n1 < n2|
+*/
+int bignum_compare_abs(const BigNum *n1, const BigNum *n2);
 
 #endif

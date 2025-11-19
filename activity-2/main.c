@@ -27,7 +27,8 @@ int main() {
     // Loop para repetir número de operações do programa
     for (int i = 0; i < num_operations; i++) {
         // Lê a linha do usuário e armazena em line_content
-        scanf(" %[^\n]", line_content);
+        scanf(" %999[^\n]", line_content);
+        line_content[strcspn(line_content, "\r\n")] = '\0';
         
         // Cria os ponteiros para as três palavras de line_content
         // e "corta" a string line_content em três partes

@@ -125,92 +125,127 @@ BigNum* bignum_sum(const BigNum *n1, const BigNum *n2) {
     if (n1 == NULL || n2 == NULL)
         return NULL;
 
-    // Verifica se os dois números para a soma são positivos
-    if (n1->sign != 1 || n2->sign != 1)
-        return NULL;
+    // -------- CASO 1: SINAIS IGUAIS (soma normal) --------
+    if (n1->sign == n2->sign) {
+        // Armazena a quantidade de dígitos de n1 e n2
+        int size_n1 = linked_list_size(n1->digits);
+        int size_n2 = linked_list_size(n2->digits);
 
-    // Armazena a quantidade de dígitos de n1 e n2
-    int size_n1 = linked_list_size(n1->digits);
-    int size_n2 = linked_list_size(n2->digits);
+        // Armazena a maior quantidade de dígitos em max_size
+        int max_size;
 
-    // Armazena a maior quantidade de dígitos em max_size
-    int max_size;
-
-    if (size_n1 > size_n2)
-        max_size = size_n1;
-    else
-        max_size = size_n2;
-
-    // Cria o número sum que guardará a soma de n1 e n2
-    // Se a memória não foi alocada, retorna nulo
-    BigNum *sum = malloc(sizeof(BigNum));
-    if (sum == NULL)
-        return NULL;
-
-    // Cria a lista encadeada do número sum (sum->digits)
-    // Se a memória não foi alocada, desaloca sum e retorna nulo
-    sum->digits = linked_list_create();
-    if (sum->digits == NULL) {
-        free(sum);
-        return NULL;
-    }
-
-    // Define o sinal sempre positivo (para evitar lixo na memória)
-    sum->sign = 1;
-
-    // Cria o carry inicial valendo 0 (para a primeira soma)
-    int carry = 0;
-
-    // Cria as variáveis para realizar a soma
-    int n1_digit, n2_digit, sum_digit;
-
-    for (int i = 0; i < max_size; i++) {
-
-        // Pega dígito de n1 se o i-ésimo dígito de n1 existir
-        if (i < size_n1)
-            linked_list_get_node(n1->digits, i, &n1_digit);
-
-        // Caso contrário, se o dígito não existir, assume 0 para a soma
+        if (size_n1 > size_n2)
+            max_size = size_n1;
         else
-            n1_digit = 0;
+            max_size = size_n2;
 
-        // Pega dígito de n2 se o i-ésimo dígito de n2 existir
-        if (i < size_n2)
-            linked_list_get_node(n2->digits, i, &n2_digit);
+        // Cria o número sum que guardará a soma de n1 e n2
+        // Se a memória não foi alocada, retorna nulo
+        BigNum *sum = malloc(sizeof(BigNum));
+        if (sum == NULL)
+            return NULL;
 
-        // Caso contrário, se o dígito não existir, assume 0 para a soma
-        else
-            n2_digit = 0;
-
-        // Realiza a soma dos dígitos e o carry
-        sum_digit = n1_digit + n2_digit + carry;
-
-        // Se os dígitos somados ultrapassarem 9, subtrai 10 do dígito
-        // e manda esse valor para o carry (carry = 1)
-        if (sum_digit >= 10) {
-            sum_digit -= 10;
-            carry = 1;
-
-        // Caso contrário, apenas define carry = 0
-        } else {
-            carry = 0;
+        // Cria a lista encadeada do número sum (sum->digits)
+        // Se a memória não foi alocada, desaloca sum e retorna nulo
+        sum->digits = linked_list_create();
+        if (sum->digits == NULL) {
+            free(sum);
+            return NULL;
         }
 
-        // Insere resultado da soma dos dígitos em sum
-        linked_list_insert_node(sum->digits, i, sum_digit);
+        // O sinal da soma é sempre igual ao dos números
+        sum->sign = n1->sign;
 
-        // Processo repete para o próximo dígito
-        // ou apenas termina se for o último
+        // Cria o carry inicial valendo 0 (para a primeira soma)
+        int carry = 0;
+
+        // Cria as variáveis para realizar a soma
+        int n1_digit, n2_digit, sum_digit;
+
+        for (int i = 0; i < max_size; i++) {
+
+            // Pega dígito de n1 se o i-ésimo dígito de n1 existir
+            if (i < size_n1)
+                linked_list_get_node(n1->digits, i, &n1_digit);
+
+            // Caso contrário, se o dígito não existir, assume 0 para a soma
+            else
+                n1_digit = 0;
+
+            // Pega dígito de n2 se o i-ésimo dígito de n2 existir
+            if (i < size_n2)
+                linked_list_get_node(n2->digits, i, &n2_digit);
+
+            // Caso contrário, se o dígito não existir, assume 0 para a soma
+            else
+                n2_digit = 0;
+
+            // Realiza a soma dos dígitos e o carry
+            sum_digit = n1_digit + n2_digit + carry;
+
+            // Se os dígitos somados ultrapassarem 9, subtrai 10 do dígito
+            // e manda esse valor para o carry (carry = 1)
+            if (sum_digit >= 10) {
+                sum_digit -= 10;
+                carry = 1;
+
+            // Caso contrário, apenas define carry = 0
+            } else {
+                carry = 0;
+            }
+
+            // Insere resultado da soma dos dígitos em sum
+            linked_list_insert_node(sum->digits, i, sum_digit);
+
+            // Processo repete para o próximo dígito
+            // ou apenas termina se for o último
+        }
+
+        // Se terminou o loop com carry = 1, adiciona um dígito extra em sum
+        if (carry == 1)
+            linked_list_insert_node(sum->digits, max_size, carry);
+        
+        // Se chegou até aqui, o número sum foi somado e já pode retornar
+        return sum;
     }
 
-    // Se terminou o loop com carry = 1, adiciona um dígito extra em sum
-    if (carry == 1)
-        linked_list_insert_node(sum->digits, max_size, carry);
-    
-    // Se chegou até aqui, o número sum foi somado e já pode retornar
-    return sum;
-}
+    // -------- CASO 2: SINAIS DIFERENTES (vira subtração) --------
+    else {
 
+        // Vamos descobrir quem tem maior módulo
+        int cmp = bignum_compare_abs(n1, n2);
+
+        // Se são iguais, mas com sinais opostos, o resultado
+        // da subtração é 0.
+        if (cmp == 0)
+            return bignum_create("0", 1);
+
+        // Se são diferentes com sinais opostos, cria os dois
+        // números para realizar a subtração
+        const BigNum *big;
+        const BigNum *small;
+
+        // Compara quem é maior em módulo
+        if (cmp == 1) { 
+            // n1 é maior em módulo
+            big = n1;
+            small = n2;
+
+        } else {         
+            // n2 é maior em módulo
+            big = n2;
+            small = n1;
+        }
+
+        // Subtrai magnitudes: |big| - |small|
+        BigNum *sub = bignum_sub_abs(big, small);
+
+        // Resultado tem sempre o mesmo sinal do maior em módulo
+        sub->sign = big->sign;
+
+        return sub;
+    }
+}
 
 int bignum_compare(const BigNum *n1, const BigNum *n2) {
     // Verifica se n1 e n2 existem
@@ -338,6 +373,10 @@ int bignum_print(const BigNum *n) {
     // Obtém o número de dígitos do número
     int n_size = linked_list_size(n->digits);
     int digit;
+
+    // Imprime o sinal se o número for negativo
+    if (n->sign == -1)
+        printf("-");
     
     // Percorre a lista do final para o começo e imprime cada dígito
     for (int i = n_size - 1; i >= 0; i--) {
@@ -367,4 +406,135 @@ void bignum_destroy(BigNum **n) {
     // Desaloca todo o grande número e atribui nulo ao ponteiro
     free(*n);
     *n = NULL;
+}
+
+// ======================= Funções Auxiliares =======================
+
+BigNum* bignum_sub_abs(const BigNum *n1, const BigNum *n2) {
+    // Não é necessária verificação de existência, pois trata-se
+    // de uma função auxiliar utilizada por bignum_sum, que já
+    // faz essa verificação
+
+    // Obtém no número de dígitos de cada número recebido
+    int size_n1 = linked_list_size(n1->digits);
+    int size_n2 = linked_list_size(n2->digits);
+
+    // Cria o grande número que resulta da subtração de n1 e n2
+    BigNum *sub_abs = malloc(sizeof(BigNum));
+
+    // Se não alocar memória para sub_abs, retorna nulo
+    if (sub_abs == NULL)
+        return NULL;
+
+    // Cria a lista para os dígitos de sub_abs
+    sub_abs->digits = linked_list_create();
+
+    // Se não alocou memória para a lista de dígitos, libera
+    // sub_abs da memória e retorna nulo
+    if (sub_abs->digits == NULL) {
+        free(sub_abs);
+        return NULL;
+    }
+
+    // Define o sinal do resultado como positivo (sempre)
+    sub_abs->sign = 1;
+
+    // Cria o borrow = 0 inicial
+    int borrow = 0;
+
+    // Cria as variáveis para realizar a subtração
+    int n1_digit, n2_digit, sub_digit;
+
+    // Realiza as operações de subtração dígito a dígito até o
+    // o dígito do maior número (n1)
+    for (int i = 0; i < size_n1; i++) {
+
+        // Obtém o i-ésimo dígito do maior número e salva em n1_digit
+        linked_list_get_node(n1->digits, i, &n1_digit);
+
+        // Verifica se o i-ésimo dígito de n2 existe e salva em n2_digit
+        if (i < size_n2)
+            linked_list_get_node(n2->digits, i, &n2_digit);
+
+        // Caso contrário, atribui 0 para fazer a subtração
+        else
+            n2_digit = 0;
+
+
+        // Realiza a subtração dos dígitos
+        sub_digit = n1_digit - n2_digit - borrow;
+
+        // Se o dígito resultado for negativo, soma 10 e define borrow = 1
+        if (sub_digit < 0) {
+            sub_digit += 10;
+            borrow = 1;
+        
+        // Caso contrário, apenas define borrow = 0
+        } else {
+            borrow = 0;
+        }
+
+        // Insere na lista de sub_abs o dígito subtraído
+        linked_list_insert_node(sub_abs->digits, i, sub_digit);
+    }
+
+    // Obtém o número de dígitos da subtração de n1 e n2
+    int sub_size = linked_list_size(sub_abs->digits);
+    
+    // Loop para remover os zeros à esquerda
+    // Note que k vai até 1, pois o número pode ser 0
+    for (int k = sub_size - 1; k >= 1; k--) {
+        // Cria o dígito para verificação
+        int digit;
+
+        // Busca o dígito no k-ésimo nó
+        linked_list_get_node(sub_abs->digits, k, &digit);
+
+        // Caso o dígito seja um zero (à esquerda), remove da lista
+        // Caso contrário, encerra o loop para não remover zeros do meio
+        if (digit == 0)
+            linked_list_remove_node(sub_abs->digits, k, NULL);
+        else
+            break;
+    }
+
+    return sub_abs;
+}
+
+int bignum_compare_abs(const BigNum *n1, const BigNum *n2) {
+    // Não é necessária verificação de existência, pois trata-se
+    // de uma função auxiliar utilizada por bignum_sum, que já
+    // faz essa verificação
+
+    // Obtém no número de dígitos de cada número recebido
+    int size_n1 = linked_list_size(n1->digits);
+    int size_n2 = linked_list_size(n2->digits);
+
+    // Realiza a comparação entre as quantidades de dígitos dos números
+    if (size_n1 > size_n2)
+        return 1; // |n1| > |n2|
+
+    if (size_n1 < size_n2)
+        return 2; // |n1| < |n2|
+
+    // Se possuírem a mesma quantidade de dígitos, compara dígito a
+    // dígito, iniciando do mais significativo até o menos significativo
+    
+    // Cria as variáveis para guardar os dígitos
+    int n1_digit, n2_digit;
+
+    // Percorre os dois números paralelamente
+    for (int i = size_n1 - 1; i >= 0; i--) {
+        linked_list_get_node(n1->digits, i, &n1_digit);
+        linked_list_get_node(n2->digits, i, &n2_digit);
+
+        // Na primeira diferença de dígitos, retorna qual é maior
+        if (n1_digit > n2_digit)
+            return 1; // |n1| > |n2|
+        if (n1_digit < n2_digit)
+            return 2; // |n1| < |n2|
+    }
+
+    // Se chegou até aqui, então os números são iguais em módulo
+    return 0; // |n1| = |n2|
 }
