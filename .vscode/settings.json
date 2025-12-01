@@ -16,6 +16,7 @@
         "big_numbers.h": "c",
         "sstream": "c",
         "string": "c",
-        "limits": "c"
+        "limits": "c",
+        "tree.h": "c"
     }
 }
